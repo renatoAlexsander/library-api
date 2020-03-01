@@ -2,9 +2,13 @@ spring:
   boot:
     admin:
       client:
-        url: http://localhost:8081
+        url: https://spring-boot-admin-server.herokuapp.com
         instance:
           name: library-api
+          management-base-url: https://spring-boot-admin-server.herokuapp.com/
+          service-base-url: ${spring.boot.admin.client.instance.management-base-url}
+          auto-deregistration: true
+          period: 5m
 
 logging:
   file: app.log
