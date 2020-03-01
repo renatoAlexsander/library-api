@@ -30,6 +30,12 @@ public class BookController {
         return bookService.getById(id);
     }
 
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable Integer id) {
+        bookService.deleteById(id);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public MessageException methodArgumentNotValidException(MethodArgumentNotValidException exception) {

@@ -23,8 +23,7 @@ import java.time.LocalDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -96,6 +95,16 @@ class BookControllerTest {
             .andExpect(jsonPath("isbn").value(createValidBook().getIsbn()))
             .andExpect(jsonPath("author").value(createValidBook().getAuthor()))
             .andExpect(jsonPath("name").value(createValidBook().getName()));
+    }
+
+    @Test
+    @DisplayName("should delete a book by id")
+    void deleteById() throws Exception {
+        mvc.perform(delete(BOOK_API.concat("/" + 1))
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNoContent());
+
+        verify(bookService).deleteById(1);
     }
 
     private BookDto createValidBook() {

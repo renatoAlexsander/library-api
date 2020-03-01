@@ -16,8 +16,7 @@ import org.modelmapper.ModelMapper;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,6 +89,32 @@ class BookServiceTest {
         assertThat(exception)
             .isInstanceOf(NotFoundException.class)
             .hasMessage("Book not found.");
+    }
+
+    @Test
+    @DisplayName("should delete a book by id")
+    void deleteByIdWhenBookExists() {
+        when(bookRepository.findById(1))
+            .thenReturn(Optional.of(bookSalved()));
+
+        assertThatCode(() -> bookService.deleteById(1))
+            .doesNotThrowAnyException();
+
+        verify(bookRepository).delete(bookSalved());
+    }
+
+    @Test
+    @DisplayName("should throw NotFoundException when book to delete not exists")
+    void deleteByIdWhenBookNotExists() {
+        when(bookRepository.findById(1))
+            .thenReturn(Optional.empty());
+
+        var exception = catchThrowable(() -> bookService.deleteById(1));
+        assertThat(exception)
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("Book not found.");
+
+        verify(bookRepository, never()).delete(any(Book.class));
     }
 
     private BookDto bookDto() {

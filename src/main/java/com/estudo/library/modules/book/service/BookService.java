@@ -31,4 +31,14 @@ public class BookService {
             .map(book -> modelMapper.map(book, BookDto.class))
             .orElseThrow(() -> new NotFoundException("Book not found."));
     }
+
+    public void deleteById(Integer id) {
+        var book = findById(id);
+        bookRepository.delete(book);
+    }
+
+    private Book findById(Integer id) {
+        return bookRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Book not found."));
+    }
 }
