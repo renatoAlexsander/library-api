@@ -17,4 +17,7 @@ management:
 
 java:
   runtime:
-    version: 13
+    version: zulu-1.13.0.0
+
+maven:
+  version: 3.6.2
