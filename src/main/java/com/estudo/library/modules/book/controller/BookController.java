@@ -2,7 +2,8 @@ package com.estudo.library.modules.book.controller;
 
 import com.estudo.library.exception.MessageException;
 import com.estudo.library.modules.book.dto.BookDto;
-import com.estudo.library.modules.book.model.Book;
+import com.estudo.library.modules.book.service.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -15,10 +16,18 @@ import java.util.stream.Collectors;
 @RequestMapping("api/books")
 public class BookController {
 
+    @Autowired
+    private BookService bookService;
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Book save(@RequestBody @Valid BookDto bookDto) {
-        return Book.of(bookDto);
+    public BookDto save(@RequestBody @Valid BookDto bookDto) {
+        return bookService.save(bookDto);
+    }
+
+    @GetMapping("{id}")
+    public BookDto getById(@PathVariable Integer id) {
+        return bookService.getById(id);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

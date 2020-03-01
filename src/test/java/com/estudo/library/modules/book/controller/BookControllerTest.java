@@ -1,5 +1,6 @@
 package com.estudo.library.modules.book.controller;
 
+import com.estudo.library.exception.NotFoundException;
 import com.estudo.library.modules.book.dto.BookDto;
 import com.estudo.library.modules.book.model.Book;
 import com.estudo.library.modules.book.service.BookService;
@@ -17,9 +18,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,11 +47,11 @@ class BookControllerTest {
         var bookDto = createValidBook();
 
         BDDMockito.given(bookService.save(bookDto))
-            .willReturn(Book.builder()
+            .willReturn(BookDto.builder()
                 .id(1)
-                .isbn("000")
-                .author("JK Rowling")
-                .name("Harry Pother")
+                .isbn(bookDto.getIsbn())
+                .author(bookDto.getAuthor())
+                .name(bookDto.getName())
                 .build());
 
         mvc.perform(post(BOOK_API)
@@ -56,9 +60,9 @@ class BookControllerTest {
             .content(TestUtils.convertObjectToJson(bookDto)))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("id").value(1))
-            .andExpect(jsonPath("isbn").value("000"))
-            .andExpect(jsonPath("author").value("JK Rowling"))
-            .andExpect(jsonPath("name").value("Harry Pother"));
+            .andExpect(jsonPath("isbn").value(bookDto.getIsbn()))
+            .andExpect(jsonPath("author").value(bookDto.getAuthor()))
+            .andExpect(jsonPath("name").value(bookDto.getName()));
     }
 
     @Test
@@ -72,6 +76,26 @@ class BookControllerTest {
             .andExpect(jsonPath("errors", Matchers.hasSize(3)));
 
         verify(bookService, never()).save(any(BookDto.class));
+    }
+
+    @Test
+    @DisplayName("should get a book by id")
+    void getById() throws Exception {
+        BDDMockito.given(bookService.getById(1))
+            .willReturn(BookDto.builder()
+                .id(1)
+                .isbn(createValidBook().getIsbn())
+                .author(createValidBook().getAuthor())
+                .name(createValidBook().getName())
+                .build());
+
+        mvc.perform(get(BOOK_API.concat("/" + 1))
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("id").value(1))
+            .andExpect(jsonPath("isbn").value(createValidBook().getIsbn()))
+            .andExpect(jsonPath("author").value(createValidBook().getAuthor()))
+            .andExpect(jsonPath("name").value(createValidBook().getName()));
     }
 
     private BookDto createValidBook() {

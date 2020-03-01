@@ -1,6 +1,7 @@
 package com.estudo.library.modules.book.service;
 
 import com.estudo.library.exception.BusinessException;
+import com.estudo.library.exception.NotFoundException;
 import com.estudo.library.modules.book.dto.BookDto;
 import com.estudo.library.modules.book.model.Book;
 import com.estudo.library.modules.book.repository.BookRepository;
@@ -11,6 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
@@ -24,6 +28,8 @@ class BookServiceTest {
 
     @Mock
     private BookRepository bookRepository;
+    @Mock
+    private ModelMapper modelMapper;
 
     @Test
     @DisplayName("should save a new book")
@@ -32,14 +38,17 @@ class BookServiceTest {
             .thenReturn(false);
 
         when(bookRepository.save(Mockito.any(Book.class)))
-            .thenReturn(Book.builder()
-                .id(1)
-                .author("Patrick Rothfuss")
-                .isbn("333-00")
-                .name("The name of the wind")
+            .thenReturn(bookSalved());
+
+        when(modelMapper.map(bookSalved(), BookDto.class))
+            .thenReturn(BookDto.builder()
+                .id(bookSalved().getId())
+                .author(bookSalved().getAuthor())
+                .isbn(bookSalved().getIsbn())
+                .name(bookSalved().getName())
                 .build());
 
-        assertThat(bookService.save(createBook()))
+        assertThat(bookService.save(bookDto()))
             .extracting("id", "author", "isbn", "name")
             .containsExactly(1, "Patrick Rothfuss", "333-00", "The name of the wind");
     }
@@ -50,7 +59,7 @@ class BookServiceTest {
         when(bookRepository.existsByIsbn("333-00"))
             .thenReturn(true);
 
-        var exception = catchThrowable(() -> bookService.save(createBook()));
+        var exception = catchThrowable(() -> bookService.save(bookDto()));
         assertThat(exception)
             .isInstanceOf(BusinessException.class)
             .hasMessage("ISBN already register.");
@@ -58,11 +67,45 @@ class BookServiceTest {
         verify(bookRepository, never()).save(any(Book.class));
     }
 
-    private BookDto createBook() {
+    @Test
+    @DisplayName("should return a book by id")
+    void getById() {
+        when(bookRepository.findById(1))
+            .thenReturn(Optional.of(bookSalved()));
+
+        when(modelMapper.map(bookSalved(), BookDto.class))
+            .thenReturn(bookDto());
+
+        assertThat(bookService.getById(1))
+            .isEqualTo(bookDto());
+    }
+
+    @Test
+    @DisplayName("should throw NotFoundException when id doesn't exists")
+    void shouldThrowExceptionWhenIdDoesnotExists() {
+        when(bookRepository.findById(1))
+            .thenReturn(Optional.empty());
+
+        var exception = catchThrowable(() -> bookService.getById(1));
+        assertThat(exception)
+            .isInstanceOf(NotFoundException.class)
+            .hasMessage("Book not found.");
+    }
+
+    private BookDto bookDto() {
         return BookDto.builder()
             .author("Patrick Rothfuss")
             .isbn("333-00")
             .name("The name of the wind")
+            .build();
+    }
+
+    private Book bookSalved() {
+        return Book.builder()
+            .id(1)
+            .author(bookDto().getAuthor())
+            .isbn(bookDto().getIsbn())
+            .name(bookDto().getName())
             .build();
     }
 }
