@@ -14,10 +14,3 @@ management:
     web:
       exposure:
         include: "*"
-
-java:
-  runtime:
-    version: zulu-1.13.0.0
-
-maven:
-  version: 3.6.2
